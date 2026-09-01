@@ -1,0 +1,2 @@
+# Multithreaded-TCP-Packet-Sniffer-and-TCP-Header-Analyzer
+This project develops a real-time, multi-threaded TCP network packet sniffer using a decoupled architecture to prevent traffic bottlenecks. It captures raw network packets, parses TCP header details including IP addresses, ports, flags, sequence numbers, and packet sizes and enables users to filter, sort, and log this data into .cap or log files.
