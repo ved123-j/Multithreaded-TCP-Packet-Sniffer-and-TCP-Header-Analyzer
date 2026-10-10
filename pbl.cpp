@@ -9,7 +9,7 @@
 #include <vector>
 
 using namespace std;
-
+int i=1;
 #pragma pack(push, 1)
 struct EthernetHeader 
 {
@@ -110,7 +110,7 @@ public: virtual ~NetworkAnalyzer() = default;
     void printHex(const u_char* packet, size_t start, size_t length) 
     {
         cout << "0x";
-        for (size_t i = start; i < start + length; ++i)
+        for (size_t i = start; i < start + length; i++)
             cout << hex << setw(2) << setfill('0') << (int)packet[i] << " ";
         cout << dec;
     }
@@ -131,23 +131,34 @@ class TCPPacketAnalyzer : public NetworkAnalyzer
 {
 public: void analyze(const struct pcap_pkthdr* header, const u_char* packet) 
     {
+        if (header->caplen < sizeof(EthernetHeader))
+            return;
+
         const auto* eth = reinterpret_cast<const EthernetHeader*>(packet);
         if (ntohs(eth->ether_type) != 0x0800) 
             return; 
 
         size_t eth_hdr_len = sizeof(EthernetHeader);
+        if (header->caplen < eth_hdr_len + sizeof(IPHeader))
+            return;
+
         const auto* ip = reinterpret_cast<const IPHeader*>(packet + eth_hdr_len);
         if (ip->protocol != 6) return;
 
         size_t ip_hdr_len = (ip->ver_ihl & 0x0F) * 4;
         size_t tcp_offset = eth_hdr_len + ip_hdr_len;
+        if (header->caplen < tcp_offset + sizeof(TCPHeader))
+            return;
+
         const auto* tcp = reinterpret_cast<const TCPHeader*>(packet + tcp_offset);
         size_t tcp_hdr_len = ((tcp->data_offset_reserved >> 4) & 0x0F) * 4;
 
         char src_ip[INET_ADDRSTRLEN], dst_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(ip->src_ip), src_ip, INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &(ip->dest_ip), dst_ip, INET_ADDRSTRLEN);
-
+	
+	cout << "\n" << i << "\n";
+	i++;
         cout << "\n================ [ TCP PACKET CAPTURED ] ================\n";
         cout << "Source IP:Port      : " << src_ip << ":" << ntohs(tcp->source_port) << "\n";
         cout << "Destination IP:Port : " << dst_ip << ":" << ntohs(tcp->dest_port) << "\n";
@@ -296,6 +307,7 @@ public: ~PacketSniffer()
         pcap_loop(handle_, -1, PacketSniffer::globalCallback, reinterpret_cast<u_char*>(this));
     }
 };
+
 int main() 
 {
     PacketSniffer sniffer;
