@@ -63,14 +63,14 @@ private:
     condition_variable not_full_;
     condition_variable not_empty_;
 
-public: CircularRingBuffer(size_t capacity = 1024) : capacity_(capacity), buffer_(capacity) {}
+public: CircularRingBuffer(size_t capacity = 2048) : capacity_(capacity), buffer_(capacity) {}
 
-    bool push(const struct pcap_pkthdr* hdr, const u_char* packet) {
+    bool push(struct pcap_pkthdr* head,u_char* packet) {
         unique_lock<mutex> lock(mutex_);
         if (count_ == capacity_)
             return false;
-        buffer_[tail_].header = *hdr;
-        buffer_[tail_].data.assign(packet, packet + hdr->caplen);
+        buffer_[tail_].header = *head;
+        buffer_[tail_].data.assign(packet, packet + head->caplen);
         tail_ = (tail_ + 1) % capacity_;
         count_++;
         lock.unlock();
@@ -105,7 +105,8 @@ public: CircularRingBuffer(size_t capacity = 1024) : capacity_(capacity), buffer
 
 class NetworkAnalyzer 
 {
-public: virtual ~NetworkAnalyzer() = default;
+public: 
+//virtual ~NetworkAnalyzer() = default;
 
     void printHex(const u_char* packet, size_t start, size_t length) 
     {
