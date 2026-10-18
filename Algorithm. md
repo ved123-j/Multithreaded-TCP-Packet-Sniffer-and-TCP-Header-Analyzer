@@ -1,1 +1,72 @@
+Step 1: Start the program.
+Step 2: Initialise the packet-capture library (such as libpcap) and select the network interface, such as Wi-Fi or Ethernet.
+Step 3: Initialise the required output files, such as tcp_analysis.csv, filtered_output.csv, and sniffer.log. Check whether the files can be opened and written to.
+Step 4: Ask the user to select the TCP header field to filter. The available fields are:
+Source Port
+Destination Port
+Sequence Number
+Acknowledgment Number
+Data Offset
+Reserved Bits
+TCP Flags (SYN, ACK, FIN, RST, PSH, URG, ECE, CWR, NS)
+Window Size
+Checksum
+Urgent Pointer
+Step 5: Ask the user to enter the desired field value, select a comparison operator (equal to, not equal to, greater than, or less than), and choose the output option: display matching packets, save them to a file, or both.
+Step 6: Start capturing network packets from the selected interface.
+Step 7: Receive a packet and check whether sufficient data is available to safely identify its network and transport headers.
+Step 8: Check the IP protocol. If the packet is not TCP, skip it and proceed to the next packet.
+Step 9: Validate the TCP header length and ensure that the selected field is available before accessing it. If the header is invalid or incomplete, skip the packet and record the issue in the log file if required.
+Step 10: Extract the TCP header fields, including Source Port, Destination Port, Sequence Number, Acknowledgement Number, Data Offset, Reserved Bits, Flags, Window Size, Checksum, and Urgent Pointer. Parse TCP options if they are required by the project.
+Step 11: Retrieve the value of the TCP field selected by the user.
+Step 12: Compare the extracted field value with the user-provided value using the selected comparison operator. For TCP flags, apply the appropriate flag-specific condition.
+Step 13: If the condition is satisfied, identify the packet as a matching packet.
+Step 14: Process the matching packet according to the user's output selection:
+Display the packet details on the screen, if requested.
+Write the extracted packet details to filtered_output.csv, if requested.
+Save the complete packet to a PCAP file, if requested and supported.
+Step 15: If the condition is not satisfied, exclude the packet from the filtered results while continuing to process incoming packets.
+Step 16: Repeat Steps 7–15 until packet capture is stopped or the configured packet limit is reached.
+Step 17: Flush output buffers, check and write the extracted packet details to filtered_output.csv, if requested.
+Save the complete packet to a PCAP file, if requested and supported.
+Step 15: If the condition is not satisfied, exclude the packet from the filtered results while continuing to process incoming packets.
+Step 16: Repeat Steps 7–15 until packet capture is stopped or the configured packet limit is reached.
+Step 17: Flush output buffers, check for file-writing errors, close all open files, release the network interface, and record final statistics in the log file.
+Step 18: Stop the program.
 
+Flowchart
+Start
+Initialize
+(open capture interface / files)
+Get user input
+(field, value, operator, output type)
+Start packet capture
+(using libpcap / packet capture library)
+Receive a packet
+No
+Is it a valid
+TCP packet?
+Yes
+Extract TCP header fields
+(source port, destination port, seq no., ack no.,
+flags, window size, checksum)
+Skip packet
+Get the user-selected field value
+(from the packet)
+Compare with user's condition
+(value and operator)
+No
+Does it match?
+Yes
+Process matching packet
+• Display on screen / console
+• Write to filtered output file
+·(Optional) Save full packet to pcap file
+Skip packet
+(from filtered results)
+YeS
+More packets?
+No
+Close files and interface
+(flush buffers, write logs)
+End
