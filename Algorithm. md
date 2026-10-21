@@ -1,3 +1,4 @@
+Algorithm
 Step 1: Start the program.
 Step 2: Initialise the packet-capture library (such as libpcap) and select the network interface, such as Wi-Fi or Ethernet.
 Step 3: Initialise the required output files, such as tcp_analysis.csv, filtered_output.csv, and sniffer.log. Check whether the files can be opened and written to.
