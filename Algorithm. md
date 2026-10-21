@@ -35,38 +35,91 @@ Step 17: Flush output buffers, check for file-writing errors, close all open fil
 Step 18: Stop the program.
 
 Flowchart
-Start
-Initialize
-(open capture interface / files)
-Get user input
-(field, value, operator, output type)
-Start packet capture
-(using libpcap / packet capture library)
-Receive a packet
-No
-Is it a valid
-TCP packet?
-Yes
-Extract TCP header fields
-(source port, destination port, seq no., ack no.,
-flags, window size, checksum)
-Skip packet
-Get the user-selected field value
-(from the packet)
-Compare with user's condition
-(value and operator)
-No
-Does it match?
-Yes
-Process matching packet
-• Display on screen / console
-• Write to filtered output file
-·(Optional) Save full packet to pcap file
-Skip packet
-(from filtered results)
-YeS
-More packets?
-No
-Close files and interface
-(flush buffers, write logs)
-End
++---------+
+              |  START  |
+              +---------+
+                   |
+                   v
+      +---------------------------+
+      | Initialize Packet Capture |
+      | and Select Interface      |
+      +---------------------------+
+                   |
+                   v
+      +---------------------------+
+      | Open Output Files         |
+      | CSV, Filtered CSV, Log    |
+      +---------------------------+
+                   |
+                   v
+      +---------------------------+
+      | Select TCP Field, Value,  |
+      | Operator and Output Mode  |
+      +---------------------------+
+                   |
+                   v
+      +---------------------------+
+      | Start Capturing Packets   |
+      +---------------------------+
+                   |
+                   v
+          /-----------------\
+         < Enough Data to    >
+         < Read Headers?     >
+          \-----------------/
+             | Yes      | No
+             v          |
+      /-----------------\ |
+     < Is it a TCP       >|
+     < Packet?           >|
+      \-----------------/ |
+        | Yes      | No   |
+        v          |      |
+   /-------------------\  |
+  < Is TCP Header Valid > |
+  < and Field Available? >|
+   \-------------------/  |
+       | Yes      | No    |
+       v          |       |
++-----------------------+ |
+| Extract TCP Header    | |
+| Fields and Field Value| |
++-----------------------+ |
+           |              |
+           v              |
++-----------------------+ |
+| Compare with User     | |
+| Selected Condition    | |
++-----------------------+ |
+           |              |
+           v              |
+      /-----------------\
+     < Condition         >
+     < Satisfied?        >
+      \-----------------/
+         | Yes      | No
+         v          |
++-----------------------+
+| Display or Save       |
+| Matching Packet       |
++-----------------------+
+           |          |
+           v          |
+      /-----------------\
+     < Stop Capture or   >
+     < Packet Limit?     >
+      \-----------------/
+         | Yes      | No
+         v          |
++-----------------------+
+| Flush Buffers, Close  |
+| Files and Log Results|
++-----------------------+
+           |          |
+           v          |
+       +---------+    |
+       |  STOP   |    |
+       +---------+    |
+                      |
+         Continue capturing
+         the next packet
