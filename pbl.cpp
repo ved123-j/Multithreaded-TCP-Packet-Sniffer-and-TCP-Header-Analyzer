@@ -65,7 +65,7 @@ private:
 
 public: CircularRingBuffer(size_t capacity = 2048) : capacity_(capacity), buffer_(capacity) {}
 
-    bool push(struct pcap_pkthdr* head,u_char* packet) {
+    bool enqueue(const struct pcap_pkthdr* head,const u_char* packet) {
         unique_lock<mutex> lock(mutex_);
         if (count_ == capacity_)
             return false;
@@ -77,7 +77,7 @@ public: CircularRingBuffer(size_t capacity = 2048) : capacity_(capacity), buffer
         not_empty_.notify_one();
         return true;
     }
-    bool pop(RawPacketItem& item) {
+    bool dequeue(RawPacketItem& item) {
         unique_lock<mutex> lock(mutex_);
         while (count_ == 0 && !finished_) {
             not_empty_.wait(lock);
@@ -223,12 +223,12 @@ class PacketSniffer
     static void globalCallback(u_char* user, const struct pcap_pkthdr* header, const u_char* packet) 
     {
         auto* sniffer_instance = reinterpret_cast<PacketSniffer*>(user);
-        sniffer_instance->ring_buffer_.push(header, packet);
+        sniffer_instance->ring_buffer_.enqueue(header, packet);
     }
 
     void processPacketsLoop() {
         RawPacketItem item;
-        while (ring_buffer_.pop(item)) {
+        while (ring_buffer_.dequeue(item)) {
             analyzer_.analyze(&item.header, item.data.data());
         }
     }
