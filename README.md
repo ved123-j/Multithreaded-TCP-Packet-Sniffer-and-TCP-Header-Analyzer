@@ -3,23 +3,23 @@
 ## Overview
 Information travels across networks in the form of data packets. Early or single-threaded packet sniffing tools often create a "traffic jam" when capturing, parsing, and analyzing packets sequentially on one thread.
 
-This project implements a multithreaded C++ TCP packet sniffer built over `libpcap` that decouples live packet capture from packet inspection and logging using a producer-consumer pipeline[cite: 1, 5]. It captures raw network frames, filters for IPv4 TCP traffic (`ether_type == 0x0800` and `ip->protocol == 6`), decodes Ethernet, IPv4, and TCP headers, maps decoded fields to exact raw byte offsets, prints hex dumps, and writes structured records to `tcp_analysis.csv`[cite: 1, 2, 3, 5].
+This project implements a multithreaded C++ TCP packet sniffer built over `libpcap` that decouples live packet capture from packet inspection and logging using a producer-consumer pipeline[cite: 1, 5]. It captures raw network frames, filters for IPv4 TCP traffic (`ether_type == 0x0800` and `ip->protocol == 6`), decodes Ethernet, IPv4, and TCP headers, maps decoded fields to exact raw byte offsets, prints hex dumps, and writes structured records to `tcp_analysis.csv`.
 
 ---
 
 ## Core Features & Capabilities
 
 ### 1. Interactive Interface Discovery & Selection
-* Enumerates available network interfaces dynamically at runtime using `pcap_findalldevs()`, displaying interface names and descriptions so users do not have to hardcode or memorize interface flags[cite: 5].
-* Opens the selected interface via `pcap_open_live()` for live packet capture[cite: 1, 4].
+* Enumerates available network interfaces dynamically at runtime using `pcap_findalldevs()`, displaying interface names and descriptions so users do not have to hardcode or memorize interface flags.
+* Opens the selected interface via `pcap_open_live()` for live packet capture.
 
 ### 2. Multithreaded Producer-Consumer Architecture (`CircularRingBuffer`)
-* **Producer (`pcap_loop` callback):** Captures incoming frames from `libpcap` and pushes copies (`pcap_pkthdr` + raw packet bytes) into a bounded `CircularRingBuffer` (1,024 slots in `PacketSniffer`)[cite: 1, 5].
-* **Consumer (`processPacketsLoop` worker thread):** Pulls items from the ring buffer using `std::mutex` and `std::condition_variable` synchronization and passes them to `TCPPacketAnalyzer`[cite: 1, 5].
-* **Bounded Memory & Drop Safety:** Caps queue growth to a fixed slot ceiling to prevent unbounded memory growth during traffic spikes, safely rejecting/dropping excess packets when full[cite: 1, 5].
+* **Producer (`pcap_loop` callback):** Captures incoming frames from `libpcap` and pushes copies (`pcap_pkthdr` + raw packet bytes) into a bounded `CircularRingBuffer` (1,024 slots in `PacketSniffer`).
+* **Consumer (`processPacketsLoop` worker thread):** Pulls items from the ring buffer using `std::mutex` and `std::condition_variable` synchronization and passes them to `TCPPacketAnalyzer`.
+* **Bounded Memory & Drop Safety:** Caps queue growth to a fixed slot ceiling to prevent unbounded memory growth during traffic spikes, safely rejecting/dropping excess packets when full.
 
 ### 3. Safe Header Parsing & Boundary Guards
-* Uses `#pragma pack(push, 1)` on `EthernetHeader`, `IPHeader`, and `TCPHeader` structs so binary packet fields align directly with wire byte layouts without compiler padding[cite: 1, 5].
+* Uses `#pragma pack(push, 1)` on `EthernetHeader`, `IPHeader`, and `TCPHeader` structs so binary packet fields align directly with wire byte layouts without compiler padding.
 * Enforces `header->caplen` checks at each layer and computes dynamic IP (`(ver_ihl & 0x0F) * 4`) and TCP (`((data_offset_reserved >> 4) & 0x0F) * 4`) header lengths to prevent out-of-bounds reads on truncated or malformed frames.
 * Filters early to process IPv4 (`0x0800`) and TCP (`protocol == 6`) packets while safely skipping non-TCP/malformed frames without crashing.
 
