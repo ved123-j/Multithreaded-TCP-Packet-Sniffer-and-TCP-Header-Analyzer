@@ -13,6 +13,8 @@ This document outlines the testing and validation status of the C++ network pack
 | 3 | TCP header offset calculation | PASS | Options and variable padding lengths are calculated dynamically using the TCP Data Offset field. |
 | 4 | Thread consumer-producer synchronization | PASS | The thread-safe `CircularRingBuffer` uses `std::mutex` and `std::condition_variable` to manage concurrent access without data corruption or race conditions. |
 | 5 | Addition of new interfaces (dynamically) | PASS | Local network adapters are dynamically listed via `pcap_findalldevs`, allowing interactive interface selection and smooth TCP traffic routing. |
+| 6 | CSV log file initialization & row writing | PASS | Output file (`tcp_analysis.csv`) opens properly and writes parsed TCP packet fields as structured rows. |
+| 7 | Real-time file stream flushing | PASS | Output stream flushes after each recorded packet so captured rows are persisted immediately without waiting for shutdown. |
 
 ---
 
